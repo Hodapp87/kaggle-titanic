@@ -15,9 +15,9 @@ import sklearn
 import sklearn.model_selection
 import sklearn.linear_model
 import sklearn.preprocessing
+import sklearn.ensemble
 
 pandas.set_option("display.width", None)
-np.random.seed(0)
 
 # Load data:
 train_raw = pandas.read_csv("train.csv")
@@ -25,9 +25,9 @@ test = pandas.read_csv("test.csv")
 
 # Transform some columns:
 def xform_input(df):
-    #  One-hot encode categorical Embarked column, and turn column
-    # "Sex" is from string to a number - 0 for male, 1 for female (it
-    # has only these two categories, all non-null)
+    # One-hot encode categorical Embarked column, and turn column
+    # "Sex" to a number - 0 for male, 1 for female (it has only these
+    # two categories, all non-null)
     onehot = pandas.get_dummies(df.Embarked, "Embarked")
     return df.assign(Sex = numpy.where(df.Sex == "male", 0, 1)) \
              .drop("Embarked", axis=1) \
@@ -38,7 +38,7 @@ test = xform_input(test)
 
 # Train/validation split, and throw out some columns:
 train, valid = sklearn.model_selection.train_test_split(
-    train_raw, test_size=0.25, random_state=12345)
+    train_raw, test_size=0.1, random_state=1234)
 cols = ("Pclass", "Sex", "Age", "SibSp", "Parch", "Fare",
         "Embarked_C", "Embarked_Q", "Embarked_S")
 train_X = train.loc[:, cols]
@@ -57,15 +57,24 @@ test_X_arr = imp.transform(test.loc[:, cols])
 logistic = sklearn.linear_model.LogisticRegression(C = 1e5)
 logistic = logistic.fit(train_X_arr, train_Y)
 
-# Training & validation accuracy:
-def get_accuracy(model, x, y):
-    pr = model.predict(x)
-    return sum(pr == y) / len(x)
+rf = sklearn.ensemble.RandomForestClassifier(
+    n_estimators=200, criterion="entropy", max_depth=7, n_jobs=-1,
+    random_state=12348)
+rf = rf.fit(train_X_arr, train_Y)
 
-train_acc = get_accuracy(logistic, train_X_arr, train_Y)
-valid_acc = get_accuracy(logistic, valid_X_arr, valid_Y)
+# Training & validation accuracy:
+train_acc = logistic.score(train_X_arr, train_Y)
+valid_acc = logistic.score(valid_X_arr, valid_Y)
+print("Logistic regression, training & validation accuracy: {0:.2f}%, {1:.2f}%".format(
+    100 * train_acc, 100 * valid_acc))
+
+# Training & validation accuracy:
+train_acc = rf.score(train_X_arr, train_Y)
+valid_acc = rf.score(valid_X_arr, valid_Y)
+print("Random forests, training & validation accuracy: {0:.2f}%, {1:.2f}%".format(
+    100 * train_acc, 100 * valid_acc))
 
 # Generate submission:
 submission = test[["PassengerId"]]
-submission = submission.assign(Survived = logistic.predict(test_X_arr))
+submission = submission.assign(Survived = rf.predict(test_X_arr))
 submission.to_csv("submission.csv", index=False)
