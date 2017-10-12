@@ -62,16 +62,26 @@ rf = sklearn.ensemble.RandomForestClassifier(
     random_state=12348)
 rf = rf.fit(train_X_arr, train_Y)
 
+ab = sklearn.ensemble.AdaBoostClassifier(
+    n_estimators=500,
+    learning_rate=0.95,
+    random_state=12345)
+ab = ab.fit(train_X_arr, train_Y)
+
 # Training & validation accuracy:
 train_acc = logistic.score(train_X_arr, train_Y)
 valid_acc = logistic.score(valid_X_arr, valid_Y)
 print("Logistic regression, training & validation accuracy: {0:.2f}%, {1:.2f}%".format(
     100 * train_acc, 100 * valid_acc))
 
-# Training & validation accuracy:
 train_acc = rf.score(train_X_arr, train_Y)
 valid_acc = rf.score(valid_X_arr, valid_Y)
 print("Random forests, training & validation accuracy: {0:.2f}%, {1:.2f}%".format(
+    100 * train_acc, 100 * valid_acc))
+
+train_acc = ab.score(train_X_arr, train_Y)
+valid_acc = ab.score(valid_X_arr, valid_Y)
+print("AdaBoost, training & validation accuracy: {0:.2f}%, {1:.2f}%".format(
     100 * train_acc, 100 * valid_acc))
 
 # Generate submission:
