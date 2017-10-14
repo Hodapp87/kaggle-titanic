@@ -14,3 +14,7 @@ So far this contains:
   regression and a random forest classifier.
 - A Jupyter notebook that copies most of the above and has a variety
   of other exploration.
+
+The Jupyter notebook is able to get to around 0.80 accuracy (testing
+accuracy on the public leaderboard) with random forests, but I am
+seemingly unable to push past this.
